@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: file-monitor-controller
+  namespace: default
+  labels:
+    app: file-monitor-controller
+spec:
+  selector:
+    matchLabels:
+      app: file-monitor-controller
+  template:
+    metadata:
+      labels:
+        app: file-monitor-controller
+    spec:
+      serviceAccountName: file-monitor-controller
+      containers:
+      - name: controller
+        image: file-monitor-controller:latest
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: WATCH_NAMESPACE
+          value: ""
+        resources:
+          limits:
+            cpu: 200m
+            memory: 128Mi
+          requests:
+            cpu: 100m
+            memory: 64Mi
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: file-monitor-controller
+  namespace: default
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: file-monitor-controller
+rules:
+- apiGroups: ["sentinalfs.io"]
+  resources: ["filemonitors"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+- apiGroups: ["sentinalfs.io"]
+  resources: ["filemonitors/status"]
+  verbs: ["get", "update", "patch"]
+- apiGroups: [""]
+  resources: ["events"]
+  verbs: ["create", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: file-monitor-controller
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: file-monitor-controller
+subjects:
+- kind: ServiceAccount
+  name: file-monitor-controller
+  namespace: default
