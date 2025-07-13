@@ -1,0 +1,8 @@
+apiVersion: sentinalfs.io/v1
+kind: FileMonitor
+metadata:
+  name: example-file-monitor
+  namespace: default
+spec:
+  path: "/tmp"
+  namespace: "default"
